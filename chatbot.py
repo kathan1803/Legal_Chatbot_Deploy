@@ -8,8 +8,36 @@ import httpx
 import io
 import PyPDF2
 import docx
+import requests
+import chromadb
 
 load_dotenv()
+
+# ChromaDB & Cloudflare setup
+chroma_client = chromadb.PersistentClient(path="./chroma_db")
+collection = chroma_client.get_collection(name="constitution_embeddings")
+
+def get_embedding(text):
+    model = "@cf/baai/bge-large-en-v1.5"
+    url = f"https://api.cloudflare.com/client/v4/accounts/{os.getenv('CLOUDFLARE_ACCOUNT_ID')}/ai/run/{model}"
+    headers = {
+        "Authorization": f"Bearer {os.getenv('CLOUDFLARE_API_TOKEN')}",
+        "Content-Type": "application/json"
+    }
+    response = requests.post(url, headers=headers, json={"text": text})
+    result = response.json()
+    if result.get("success") and result.get("result") and result["result"].get("data"):
+        return result["result"]["data"][0]
+    return None
+
+def get_context_from_chroma(question):
+    embedding = get_embedding(question)
+    if not embedding:
+        return "No relevant context found."
+    result = collection.query(query_embeddings=[embedding], n_results=3)
+    if result["documents"]:
+        return "\n\n".join(result["documents"][0])
+    return "No relevant documents found."
 
 # Function to initialize the Groq client
 def setup_groq_client(api_key):
@@ -24,11 +52,41 @@ def setup_groq_client(api_key):
 
 def fetch_ai_response(client, conversation_history):
     try:
+        # Get the last user message
+        last_user_message = next((m["content"] for m in reversed(conversation_history) if m["role"] == "user"), "")
+        
+        # Retrieve context from ChromaDB
+        context = get_context_from_chroma(last_user_message)
+
+        # Enrich the user message with ChromaDB context
+        context_prefixed_message = f"""Use the following legal context to answer the user's question:
+
+Context:
+{context}
+
+Question:
+{last_user_message}
+"""
+
+        # Replace the last user message with the enriched one
+        modified_history = [
+            m if m["role"] != "user" or m["content"] != last_user_message
+            else {"role": "user", "content": context_prefixed_message}
+            for m in conversation_history
+        ]
+
+        # Prepend system prompt from usecase_prompt
+        system_prompt = {"role": "system", "content": usecase_prompt()}
+        final_history = [system_prompt] + modified_history
+
+        # Send to Groq
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=conversation_history
+            messages=final_history
         )
+
         return response.choices[0].message.content
+
     except Exception as e:
         st.error(f"Error communicating with Groq API: {str(e)}")
         return None

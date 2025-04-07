@@ -3,8 +3,12 @@ import os
 import chromadb
 from chromadb.config import Settings
 
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(script_dir, "embedding_results.json")
+
 # Load the embedding results
-with open("embedding_results.json", "r") as f:
+with open(file_path, "r") as f:
     embedding_results = json.load(f)
 
 # Initialize ChromaDB client - Updated to use the new client initialization

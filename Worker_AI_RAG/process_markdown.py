@@ -7,6 +7,33 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+
+# ChromaDB & Cloudflare setup
+chroma_client = chromadb.PersistentClient(path="./chroma_db")
+collection = chroma_client.get_collection(name="constitution_embeddings")
+
+def get_embedding(text):
+    model = "@cf/baai/bge-large-en-v1.5"
+    url = f"https://api.cloudflare.com/client/v4/accounts/{os.getenv('CLOUDFLARE_ACCOUNT_ID')}/ai/run/{model}"
+    headers = {
+        "Authorization": f"Bearer {os.getenv('CLOUDFLARE_API_TOKEN')}",
+        "Content-Type": "application/json"
+    }
+    response = requests.post(url, headers=headers, json={"text": text})
+    result = response.json()
+    if result.get("success") and result.get("result") and result["result"].get("data"):
+        return result["result"]["data"][0]
+    return None
+
+def get_context_from_chroma(question):
+    embedding = get_embedding(question)
+    if not embedding:
+        return "No relevant context found."
+    result = collection.query(query_embeddings=[embedding], n_results=3)
+    if result["documents"]:
+        return "\n\n".join(result["documents"][0])
+    return "No relevant documents found."
+
 CLOUDFLARE_API_TOKEN = os.getenv("CLOUDFLARE_API_TOKEN")
 CLOUDFLARE_ACCOUNT_ID = os.getenv("CLOUDFLARE_ACCOUNT_ID")
 
@@ -40,13 +67,17 @@ def generate_answer(question, context):
     url = f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/{model}"
     
     prompt = f"""
-    Answer the question based on the following context:
-    
+    You are a legal assistant answering questions based only on the Indian Constitution.
+    Use the following context to answer the question. Do not use any external knowledge.
+
+    If the answer is not found in the context, respond with:
+    "The answer is not available in the provided context."
+
     Context:
     {context}
-    
+
     Question: {question}
-    
+
     Answer:
     """
     
