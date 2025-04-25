@@ -1,0 +1,403 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Lato:wght@300;400;500;700&display=swap');
+
+/* Overall styling with Legal theme */
+:root {
+  --legal-blue: #1d3557;
+  --legal-light-blue: #457b9d;
+  --accent-gold: #e9c46a;
+  --parchment: #f6f4ed;
+  --dark-parchment: #e9e7e0;
+  --ink: #2b2b2b;
+  --highlight: #a8dadc;
+  --seal-red: #e63946;
+}
+
+/* Background with subtle legal pattern */
+.App {
+  background-color: var(--legal-blue);
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z' fill='%23f1faee' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+  font-family: 'Lato', sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  color: var(--ink);
+}
+
+.App-header {
+  background-color: var(--legal-blue);
+  color: white;
+  padding: 1.5rem;
+  text-align: center;
+  border-bottom: 3px solid var(--accent-gold);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.App-header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: white;
+}
+
+.logo-icon {
+  font-size: 24px;
+  color: var(--accent-gold);
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  flex-grow: 1;
+}
+
+/* Chat container */
+.chat-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  background: var(--parchment);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  border: 1px solid rgba(229, 229, 229, 0.8);
+  height: 80vh;
+}
+
+/* Chat messages area */
+.chat-messages {
+  flex-grow: 1;
+  padding: 25px;
+  overflow-y: auto;
+  background-color: var(--dark-parchment);
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23e9c46a' fill-opacity='0.05' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Messages styling */
+.message {
+  display: flex;
+  margin-bottom: 16px;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.user-message {
+  justify-content: flex-end;
+}
+
+.ai-message {
+  justify-content: flex-start;
+}
+
+.message-content {
+  padding: 14px 18px;
+  border-radius: 18px;
+  max-width: 70%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  line-height: 1.5;
+}
+
+.message-role {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 4px;
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.user-message .message-content {
+  background-color: var(--legal-blue);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.ai-message .message-content {
+  background-color: white;
+  color: var(--ink);
+  border-bottom-left-radius: 4px;
+  border-left: 3px solid var(--accent-gold);
+}
+
+/* Input form */
+.chat-input-form {
+  display: flex;
+  padding: 15px 20px;
+  background-color: white;
+  border-top: 1px solid rgba(229, 229, 229, 0.8);
+  gap: 10px;
+}
+
+.chat-input-form input {
+  flex-grow: 1;
+  padding: 12px 15px;
+  font-size: 16px;
+  border-radius: 25px;
+  border: 1px solid #ccc;
+  outline: none;
+  transition: border-color 0.3s;
+  font-family: 'Lato', sans-serif;
+}
+
+.chat-input-form input:focus {
+  border-color: var(--legal-light-blue);
+}
+
+.chat-input-form button {
+  background: linear-gradient(135deg, var(--legal-blue) 0%, var(--legal-light-blue) 100%);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(29, 53, 87, 0.3);
+}
+
+.chat-input-form button:hover {
+  background: linear-gradient(135deg, var(--legal-light-blue) 0%, var(--legal-blue) 100%);
+  transform: translateY(-2px);
+}
+
+.chat-input-form button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(29, 53, 87, 0.3);
+}
+
+.chat-input-form button:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* File uploader */
+.file-uploader {
+  padding: 15px 20px;
+  background-color: var(--parchment);
+  border-top: 1px solid rgba(229, 229, 229, 0.8);
+}
+
+.file-uploader h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--legal-blue);
+}
+
+.file-uploader form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.file-uploader input[type="file"] {
+  padding: 8px;
+  border: 1px dashed var(--legal-light-blue);
+  border-radius: 8px;
+  background-color: white;
+}
+
+.file-uploader button {
+  background: linear-gradient(135deg, var(--seal-red) 0%, #d62828 100%);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  align-self: flex-end;
+  box-shadow: 0 2px 5px rgba(230, 57, 70, 0.3);
+  font-family: 'Lato', sans-serif;
+}
+
+.file-uploader button:hover {
+  background: linear-gradient(135deg, #d62828 0%, var(--seal-red) 100%);
+  transform: translateY(-2px);
+}
+
+.file-uploader button:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Scrollbar styling */
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(69, 123, 157, 0.4);
+  border-radius: 10px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(69, 123, 157, 0.6);
+}
+
+/* Loading animation */
+.thinking-message .message-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.thinking-dots {
+  display: flex;
+}
+
+.thinking-dots span {
+  width: 6px;
+  height: 6px;
+  background-color: var(--legal-light-blue);
+  border-radius: 50%;
+  margin: 0 2px;
+  animation: dotPulse 1.4s infinite ease-in-out;
+}
+
+.thinking-dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.thinking-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.thinking-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dotPulse {
+  0%, 60%, 100% { transform: scale(1); opacity: 0.6; }
+  30% { transform: scale(1.5); opacity: 1; }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .chat-container {
+    height: 75vh;
+  }
+
+  .message-content {
+    padding: 12px 15px;
+    max-width: 85%;
+  }
+  
+  .chat-input-form {
+    padding: 12px 15px;
+  }
+
+  .chat-input-form input {
+    padding: 10px 12px;
+  }
+
+  .chat-input-form button {
+    padding: 10px 16px;
+  }
+  
+  .file-uploader {
+    padding: 12px 15px;
+  }
+}
+
+/* Preserve formatting in AI responses */
+.ai-message .message-content p {
+  margin: 0 0 1em 0;  /* Add space between paragraphs */
+}
+
+/* Style for formatted content like emails */
+.formatted-content {
+  font-family: 'Lato', sans-serif;
+  white-space: pre-wrap;  /* This preserves whitespace */
+  line-height: 1.5;
+}
+
+/* Email-specific formatting */
+.email-format {
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  margin-top: 10px;
+}
+
+.email-format .email-header {
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.email-format .email-field {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.email-format .email-field strong {
+  display: inline-block;
+  width: 60px;
+  font-weight: 600;
+}
+
+.email-format .email-body {
+  white-space: pre-wrap;
+}
+
+/* Code and pre-formatted text */
+.message-content pre, .message-content code {
+  background-color: #f5f7fa;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  padding: 0.5em;
+  overflow-x: auto;
+  white-space: pre;
+  font-size: 14px;
+  border: 1px solid #eaeaea;
+  margin: 1em 0;
+}
+
+/* Indent preservation */
+.preserve-indent {
+  text-indent: 2em;
+}
+
+/* List styling */
+.message-content ul, .message-content ol {
+  padding-left: 2em;
+  margin: 0.5em 0;
+}
+
+.message-content li {
+  margin-bottom: 0.3em;
+}
