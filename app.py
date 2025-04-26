@@ -232,7 +232,7 @@ def serve(path):
         return send_from_directory(app.static_folder, 'index.html')
 
 # Set static folder to static
-app.static_folder = 'static'
+app.static_folder = 'frontend/build'
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
