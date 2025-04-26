@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:5000/api';
+// const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL;
 
 export const sendMessage = async (conversationHistory) => {
   const response = await fetch(`${API_URL}/chat`, {
