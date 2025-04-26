@@ -221,18 +221,5 @@ def upload_file():
 def health_check():
     return jsonify({"status": "ok"})
 
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve(path):
-    from flask import send_from_directory
-    import os
-    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
-
-# Set static folder to static
-app.static_folder = 'frontend/build'
-
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
