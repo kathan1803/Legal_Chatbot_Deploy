@@ -221,5 +221,12 @@ def upload_file():
 def health_check():
     return jsonify({"status": "ok"})
 
+@app.route('/')
+def index():
+    return jsonify({
+        "status": "online",
+        "message": "Legal Chatbot API is running. Available endpoints: /api/chat, /api/upload, /api/health"
+    })
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
