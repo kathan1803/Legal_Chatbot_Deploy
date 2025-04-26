@@ -2,7 +2,7 @@
 const API_URL = process.env.REACT_APP_API_URL;
 
 export const sendMessage = async (conversationHistory) => {
-  const response = await fetch(`${API_URL}/chat`, {
+  const response = await fetch(`${API_URL}/api/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
