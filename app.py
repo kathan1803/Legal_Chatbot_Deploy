@@ -34,22 +34,6 @@ CORS(app, resources={
     }
 })
 
-# Add CORS headers to all responses
-@app.after_request
-def after_request(response):
-    origin = request.headers.get('Origin')
-    allowed_origins = [
-        "https://legal-chatbot-deploy-git-main-kathan-s-projects.vercel.app",
-        "https://legal-chatbot-deploy-kathan-s-projects.vercel.app",
-        "https://legal-chatbot-deploy-seven.vercel.app"
-    ]
-    if origin in allowed_origins:
-        response.headers.add('Access-Control-Allow-Origin', origin)
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-    return response
-
 # Add OPTIONS handler for preflight requests
 @app.route('/api/chat', methods=['POST', 'OPTIONS'])
 def chat():
