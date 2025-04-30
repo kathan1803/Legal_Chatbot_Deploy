@@ -25,21 +25,28 @@ app = Flask(__name__)
 # Update CORS configuration
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["https://legal-chatbot-deploy-seven.vercel.app"],  # Specific origin instead of *
+        "origins": ["https://legal-chatbot-deploy-git-main-kathan-s-projects.vercel.app/", 
+                   "https://legal-chatbot-deploy-kathan-s-projects.vercel.app/",
+                   "https://legal-chatbot-deploy-seven.vercel.app/"],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
         "expose_headers": ["Content-Type"],
-        "supports_credentials": True
+        "supports_credentials": True,
+        "max_age": 3600
     }
 })
 
 # Add CORS headers to all responses
 @app.after_request
 def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', 'https://legal-chatbot-deploy-seven.vercel.app')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    origin = request.headers.get('Origin')
+    if origin in ["https://legal-chatbot-deploy-git-main-kathan-s-projects.vercel.app/", 
+                 "https://legal-chatbot-deploy-kathan-s-projects.vercel.app/",
+                 "https://legal-chatbot-deploy-seven.vercel.app/"]:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
     return response
 
 # Add OPTIONS handler for preflight requests
