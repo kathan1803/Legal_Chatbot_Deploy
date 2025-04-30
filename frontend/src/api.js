@@ -3,10 +3,10 @@
 export const sendMessage = async (conversationHistory) => {
   const response = await fetch('https://legal-chatbot-deploy-knhy.onrender.com/api/chat', {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
     },
-    credentials: 'include',
     body: JSON.stringify({ conversation_history: conversationHistory }),
   });
   

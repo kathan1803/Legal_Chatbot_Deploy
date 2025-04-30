@@ -30,9 +30,7 @@ CORS(app, resources={
                    "https://legal-chatbot-deploy-seven.vercel.app/"],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
-        "expose_headers": ["Content-Type"],
         "supports_credentials": True,
-        "max_age": 3600
     }
 })
 
@@ -40,9 +38,12 @@ CORS(app, resources={
 @app.after_request
 def after_request(response):
     origin = request.headers.get('Origin')
-    if origin in ["https://legal-chatbot-deploy-git-main-kathan-s-projects.vercel.app/", 
-                 "https://legal-chatbot-deploy-kathan-s-projects.vercel.app/",
-                 "https://legal-chatbot-deploy-seven.vercel.app/"]:
+    allowed_origins = [
+        "https://legal-chatbot-deploy-git-main-kathan-s-projects.vercel.app",
+        "https://legal-chatbot-deploy-kathan-s-projects.vercel.app",
+        "https://legal-chatbot-deploy-seven.vercel.app"
+    ]
+    if origin in allowed_origins:
         response.headers.add('Access-Control-Allow-Origin', origin)
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
         response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
@@ -52,9 +53,14 @@ def after_request(response):
 # Add OPTIONS handler for preflight requests
 @app.route('/api/chat', methods=['POST', 'OPTIONS'])
 def chat():
-
     if request.method == 'OPTIONS':
-        return '', 204
+        # Handle preflight request
+        response = jsonify({"message": "CORS preflight successful"})
+        response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin'))
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response, 204
     
     data = request.json
     conversation_history = data.get('conversation_history', [])
