@@ -22,14 +22,132 @@ load_dotenv()
 
 app = Flask(__name__)
 
+# Update CORS configuration
 CORS(app, resources={
     r"/api/*": {
-        "origins": "https://legal-chatbot-deploy-liart.vercel.app",
+        "origins": "*",  # Note: origins is now a list
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": True
+        "expose_headers": ["Content-Type"],
+        "supports_credentials": True,
+        "send_wildcard": False
     }
 })
+
+# Add CORS headers to all responses
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
+
+# Add OPTIONS handler for preflight requests
+@app.route('/api/chat', methods=['POST', 'OPTIONS'])
+def chat():
+
+    if request.method == 'OPTIONS':
+        return '', 204
+    
+    data = request.json
+    conversation_history = data.get('conversation_history', [])
+    
+    if not conversation_history or conversation_history[-1]['role'] != 'user':
+        return jsonify({"error": "Invalid conversation history"}), 400
+    
+    # Add instruction to preserve formatting in the system prompt
+    last_system_prompt_index = -1
+    for i, msg in enumerate(conversation_history):
+        if msg['role'] == 'system':
+            last_system_prompt_index = i
+    
+    if last_system_prompt_index >= 0:
+        # Update existing system prompt
+        conversation_history[last_system_prompt_index]['content'] += "\n\nPlease ensure your response preserves formatting like spacing, indentation, and structure, especially for content like emails, code, or formal documents. Use proper paragraph breaks and maintain the intended layout."
+    else:
+        # Add new system prompt at the beginning
+        formatting_prompt = {"role": "system", "content": usecase_prompt() + "\n\nPlease ensure your response preserves formatting like spacing, indentation, and structure, especially for content like emails, code, or formal documents. Use proper paragraph breaks and maintain the intended layout."}
+        conversation_history.insert(0, formatting_prompt)
+
+    ai_response = fetch_ai_response(groq_client, conversation_history)
+    
+    if not ai_response:
+        return jsonify({"error": "Failed to get AI response"}), 500
+    
+    return jsonify({
+        "response": ai_response
+    })
+
+@app.route('/api/upload', methods=['POST', 'OPTIONS'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    
+    conversation_history = request.form.get('conversation_history', '[]')
+    import json
+    try:
+        conversation_history = json.loads(conversation_history)
+    except json.JSONDecodeError:
+        conversation_history = []
+    
+    # Create temp file
+    temp_dir = tempfile.gettempdir()
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(temp_dir, filename)
+    file.save(file_path)
+    
+    # Process the file
+    file_type = file.content_type
+    extracted_text = process_uploaded_file(file_path, file_type)
+
+    system_prompt_added = False
+    for i, msg in enumerate(conversation_history):
+        if msg['role'] == 'system':
+            conversation_history[i]['content'] += "\n\nPlease ensure your response preserves formatting like spacing, indentation, and structure, especially for content like emails, code, or formal documents."
+            system_prompt_added = True
+            break
+    
+    if not system_prompt_added:
+        formatting_prompt = {"role": "system", "content": usecase_prompt() + "\n\nPlease ensure your response preserves formatting like spacing, indentation, and structure, especially for content like emails, code, or formal documents."}
+        conversation_history.insert(0, formatting_prompt)
+    
+    # Remove temp file
+    os.remove(file_path)
+    
+    # Add the extracted text as a user message
+    conversation_history.append({"role": "user", "content": extracted_text})
+    
+    # Get AI response
+    ai_response = fetch_ai_response(groq_client, conversation_history)
+    
+    if not ai_response:
+        return jsonify({"error": "Failed to get AI response"}), 500
+    
+    return jsonify({
+        "extracted_text": extracted_text,
+        "ai_response": ai_response
+    })
+
+@app.before_request
+def check_content_length():
+    cl = request.content_length
+    print(f"Incoming request size: {cl} bytes")
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "ok"})
+
+@app.route('/')
+def index():
+    return jsonify({
+        "status": "online",
+        "message": "Legal Chatbot API is running. Available endpoints: /api/chat, /api/upload, /api/health"
+    })
 
 # ChromaDB & Cloudflare setup
 chroma_client = chromadb.PersistentClient(path="./chroma_db")
@@ -139,107 +257,6 @@ def process_uploaded_file(file_path, file_type):
 
 # Initialize Groq client
 groq_client = setup_groq_client(os.getenv("GROQ_API_KEY"))
-
-@app.route('/api/chat', methods=['POST', 'OPTIONS'])
-def chat():
-    data = request.json
-    conversation_history = data.get('conversation_history', [])
-    
-    if not conversation_history or conversation_history[-1]['role'] != 'user':
-        return jsonify({"error": "Invalid conversation history"}), 400
-    
-    # Add instruction to preserve formatting in the system prompt
-    last_system_prompt_index = -1
-    for i, msg in enumerate(conversation_history):
-        if msg['role'] == 'system':
-            last_system_prompt_index = i
-    
-    if last_system_prompt_index >= 0:
-        # Update existing system prompt
-        conversation_history[last_system_prompt_index]['content'] += "\n\nPlease ensure your response preserves formatting like spacing, indentation, and structure, especially for content like emails, code, or formal documents. Use proper paragraph breaks and maintain the intended layout."
-    else:
-        # Add new system prompt at the beginning
-        formatting_prompt = {"role": "system", "content": usecase_prompt() + "\n\nPlease ensure your response preserves formatting like spacing, indentation, and structure, especially for content like emails, code, or formal documents. Use proper paragraph breaks and maintain the intended layout."}
-        conversation_history.insert(0, formatting_prompt)
-
-    ai_response = fetch_ai_response(groq_client, conversation_history)
-    
-    if not ai_response:
-        return jsonify({"error": "Failed to get AI response"}), 500
-    
-    return jsonify({
-        "response": ai_response
-    })
-
-@app.route('/api/upload', methods=['POST', 'OPTIONS'])
-def upload_file():
-    if 'file' not in request.files:
-        return jsonify({"error": "No file part"}), 400
-    
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
-    
-    conversation_history = request.form.get('conversation_history', '[]')
-    import json
-    try:
-        conversation_history = json.loads(conversation_history)
-    except json.JSONDecodeError:
-        conversation_history = []
-    
-    # Create temp file
-    temp_dir = tempfile.gettempdir()
-    filename = secure_filename(file.filename)
-    file_path = os.path.join(temp_dir, filename)
-    file.save(file_path)
-    
-    # Process the file
-    file_type = file.content_type
-    extracted_text = process_uploaded_file(file_path, file_type)
-
-    system_prompt_added = False
-    for i, msg in enumerate(conversation_history):
-        if msg['role'] == 'system':
-            conversation_history[i]['content'] += "\n\nPlease ensure your response preserves formatting like spacing, indentation, and structure, especially for content like emails, code, or formal documents."
-            system_prompt_added = True
-            break
-    
-    if not system_prompt_added:
-        formatting_prompt = {"role": "system", "content": usecase_prompt() + "\n\nPlease ensure your response preserves formatting like spacing, indentation, and structure, especially for content like emails, code, or formal documents."}
-        conversation_history.insert(0, formatting_prompt)
-    
-    # Remove temp file
-    os.remove(file_path)
-    
-    # Add the extracted text as a user message
-    conversation_history.append({"role": "user", "content": extracted_text})
-    
-    # Get AI response
-    ai_response = fetch_ai_response(groq_client, conversation_history)
-    
-    if not ai_response:
-        return jsonify({"error": "Failed to get AI response"}), 500
-    
-    return jsonify({
-        "extracted_text": extracted_text,
-        "ai_response": ai_response
-    })
-
-@app.before_request
-def check_content_length():
-    cl = request.content_length
-    print(f"Incoming request size: {cl} bytes")
-
-@app.route('/api/health', methods=['GET'])
-def health_check():
-    return jsonify({"status": "ok"})
-
-@app.route('/')
-def index():
-    return jsonify({
-        "status": "online",
-        "message": "Legal Chatbot API is running. Available endpoints: /api/chat, /api/upload, /api/health"
-    })
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

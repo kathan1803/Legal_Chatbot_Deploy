@@ -1,9 +1,9 @@
 // const API_URL = 'http://localhost:5000/api';
-const API_URL = process.env.REACT_APP_API_URL;
 
 export const sendMessage = async (conversationHistory) => {
-  const response = await fetch(`${API_URL}/api/chat`, {
+  const response = await fetch('https://legal-chatbot-deploy-knhy.onrender.com/api/chat', {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
     },
@@ -22,8 +22,9 @@ export const uploadFile = async (file, conversationHistory) => {
   formData.append('file', file);
   formData.append('conversation_history', JSON.stringify(conversationHistory));
   
-  const response = await fetch(`${API_URL}/api/upload`, {
+  const response = await fetch('https://legal-chatbot-deploy-knhy.onrender.com/api/upload', {
     method: 'POST',
+    credentials: 'include',
     body: formData,
   });
   
