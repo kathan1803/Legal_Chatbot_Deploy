@@ -21,7 +21,11 @@ from prompt_utils import usecase_prompt
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, origins=["https://legal-chatbot-deploy-frontend.onrender.com"])  # Enable CORS for all routes
+CORS(app, 
+     resources={r"/*": {"origins": "https://legal-chatbot-deploy-frontend.onrender.com"}},
+     supports_credentials=True,
+     methods=["GET", "POST", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization"])
 
 # ChromaDB & Cloudflare setup
 chroma_client = chromadb.PersistentClient(path="./chroma_db")
