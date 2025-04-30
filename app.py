@@ -21,7 +21,15 @@ from prompt_utils import usecase_prompt
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "https://legal-chatbot-deploy-liart.vercel.app"}})
+
+CORS(app, resources={
+    r"/api/*": {
+        "origins": "https://legal-chatbot-deploy-liart.vercel.app",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
+    }
+})
 
 # ChromaDB & Cloudflare setup
 chroma_client = chromadb.PersistentClient(path="./chroma_db")
@@ -132,7 +140,7 @@ def process_uploaded_file(file_path, file_type):
 # Initialize Groq client
 groq_client = setup_groq_client(os.getenv("GROQ_API_KEY"))
 
-@app.route('/api/chat', methods=['POST'])
+@app.route('/api/chat', methods=['POST', 'OPTIONS'])
 def chat():
     data = request.json
     conversation_history = data.get('conversation_history', [])
@@ -163,12 +171,7 @@ def chat():
         "response": ai_response
     })
 
-@app.before_request
-def check_content_length():
-    cl = request.content_length
-    print(f"Incoming request size: {cl} bytes")
-
-@app.route('/api/upload', methods=['POST'])
+@app.route('/api/upload', methods=['POST', 'OPTIONS'])
 def upload_file():
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
@@ -221,6 +224,11 @@ def upload_file():
         "extracted_text": extracted_text,
         "ai_response": ai_response
     })
+
+@app.before_request
+def check_content_length():
+    cl = request.content_length
+    print(f"Incoming request size: {cl} bytes")
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
