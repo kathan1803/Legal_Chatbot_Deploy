@@ -25,19 +25,18 @@ app = Flask(__name__)
 # Update CORS configuration
 CORS(app, resources={
     r"/api/*": {
-        "origins": "*",  # Note: origins is now a list
+        "origins": ["https://legal-chatbot-deploy-seven.vercel.app"],  # Specific origin instead of *
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
         "expose_headers": ["Content-Type"],
-        "supports_credentials": True,
-        "send_wildcard": False
+        "supports_credentials": True
     }
 })
 
 # Add CORS headers to all responses
 @app.after_request
 def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Origin', 'https://legal-chatbot-deploy-seven.vercel.app')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
     response.headers.add('Access-Control-Allow-Credentials', 'true')
