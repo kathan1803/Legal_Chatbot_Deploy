@@ -21,7 +21,7 @@ from prompt_utils import usecase_prompt
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "https://legal-chatbot-deploy-liart.vercel.app"}})
 
 # ChromaDB & Cloudflare setup
 chroma_client = chromadb.PersistentClient(path="./chroma_db")
@@ -162,6 +162,11 @@ def chat():
     return jsonify({
         "response": ai_response
     })
+
+@app.before_request
+def check_content_length():
+    cl = request.content_length
+    print(f"Incoming request size: {cl} bytes")
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
