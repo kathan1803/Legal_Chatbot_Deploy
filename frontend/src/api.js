@@ -22,7 +22,7 @@ export const uploadFile = async (file, conversationHistory) => {
   formData.append('file', file);
   formData.append('conversation_history', JSON.stringify(conversationHistory));
   
-  const response = await fetch(`${API_URL}/upload`, {
+  const response = await fetch(`${API_URL}/api/upload`, {
     method: 'POST',
     body: formData,
   });

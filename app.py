@@ -22,9 +22,9 @@ load_dotenv()
 
 app = Flask(__name__)
 CORS(app, 
-     resources={r"/*": {"origins": "https://legal-chatbot-deploy-frontend.onrender.com"}},
+     origins=["https://legal-chatbot-deploy-frontend.onrender.com"],
      supports_credentials=True,
-     methods=["GET", "POST", "OPTIONS"],
+     methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
      allow_headers=["Content-Type", "Authorization"])
 
 # ChromaDB & Cloudflare setup
@@ -224,6 +224,28 @@ def upload_file():
 @app.route('/api/health', methods=['GET'])
 def health_check():
     return jsonify({"status": "ok"})
+
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    try:
+        print("Chat request received")
+        data = request.json
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        conversation_history = data.get('conversation_history', [])
+        if not conversation_history:
+            return jsonify({"error": "No conversation history provided"}), 400
+            
+        # Rest of your chat function
+        ai_response = fetch_ai_response(groq_client, conversation_history)
+        if not ai_response:
+            return jsonify({"error": "Failed to get AI response"}), 500
+            
+        return jsonify({"response": ai_response})
+    except Exception as e:
+        print(f"Error in chat endpoint: {str(e)}")
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 @app.route('/')
 def index():
